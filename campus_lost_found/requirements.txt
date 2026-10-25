@@ -1,0 +1,10 @@
+# Python Flask Backend Dependencies for Campus Lost and Found
+Flask==3.0.3
+Flask-Cors==4.0.1
+Flask-Session==0.8.0
+Werkzeug==3.0.3
+PyMySQL==1.1.0
+cryptography==42.0.7
+python-dotenv==1.0.1
+pillow==10.3.0
+gunicorn==22.0.0

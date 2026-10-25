@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusFind | University Lost & Found</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Bar (Strict 3-zone contract) -->
+  <header class="site-header">
+    <div class="header-inner">
+      <!-- Zone 1: Brand Wordmark -->
+      <a href="#home" class="brand-logo">CampusFind</a>
+
+      <!-- Zone 2: Navigation Links -->
+      <nav class="nav-links">
+        <a href="#home" class="nav-item active" data-nav="home">Home</a>
+        <a href="#browse" class="nav-item" data-nav="browse">Browse Items</a>
+        <a href="#report" class="nav-item" data-nav="report">Report Item</a>
+        <a href="#my-posts" class="nav-item auth-only" data-nav="my-posts" style="display:none;">My Posts</a>
+        <a href="#admin" class="nav-item admin-only" data-nav="admin" style="display:none;">Admin Portal</a>
+      </nav>
+
+      <!-- Zone 3: Single Primary Action / Account -->
+      <div class="header-actions">
+        <div id="user-pill" class="user-profile-widget" style="display: none;">
+          <span id="user-display-name">Student</span>
+          <button id="logout-btn" class="btn-text">Sign Out</button>
+        </div>
+        <a href="#login" id="login-link-btn" class="btn btn-primary">Sign In</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Toast Notifications -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- MAIN VIEW CONTAINER (Swapped via Hash Routing) -->
+  <main id="app-main" class="main-content">
+
+    <!-- ========================================================
+         PAGE 1: HOME VIEW
+         ======================================================== -->
+    <section id="view-home" class="view-section active">
+      <div class="hero-block">
+        <div class="hero-content">
+          <h1 class="hero-title">Reuniting Campus With What Was Lost</h1>
+          <p class="hero-subtitle">Official campus registry for misplaced personal belongings, student electronics, keys, and cards.</p>
+          
+          <!-- Search Bar -->
+          <form id="hero-search-form" class="hero-search-box">
+            <input type="text" id="hero-search-input" placeholder="Search for keys, blue Hydro Flask, TI-84..." required>
+            <button type="submit" class="btn btn-primary">Search</button>
+          </form>
+
+          <!-- Quick Action Buttons -->
+          <div class="hero-actions">
+            <a href="#report?type=lost" class="btn btn-outline">Report Lost Item</a>
+            <a href="#report?type=found" class="btn btn-primary">Report Found Item</a>
+          </div>
+        </div>
+
+        <!-- Campus Stats Bar -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-num" id="stat-active-items">--</span>
+            <span class="stat-label">Active Listings</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="stat-reunited">--</span>
+            <span class="stat-label">Items Returned</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">84%</span>
+            <span class="stat-label">Reunion Rate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Latest Items Grid -->
+      <section class="section-container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Latest Campus Reports</h2>
+            <p class="section-desc">Recently reported lost and found belongings across all faculties.</p>
+          </div>
+          <a href="#browse" class="btn-text">View All Items &rarr;</a>
+        </div>
+        <div id="home-items-grid" class="items-grid">
+          <div class="loading-state">Loading recent items...</div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ========================================================
+         PAGE 2: BROWSE VIEW (Filter Sidebar + Item Cards)
+         ======================================================== -->
+    <section id="view-browse" class="view-section">
+      <div class="browse-layout">
+        <!-- Filter Sidebar -->
+        <aside class="browse-sidebar">
+          <div class="filter-header">
+            <h3>Filters</h3>
+            <button id="reset-filters-btn" class="btn-text">Reset</button>
+          </div>
+
+          <!-- Type filter tabs -->
+          <div class="filter-group">
+            <label class="filter-label">Listing Type</label>
+            <div class="segmented-control" id="filter-type-control">
+              <button type="button" class="segment-btn active" data-type="">All</button>
+              <button type="button" class="segment-btn" data-type="lost">Lost</button>
+              <button type="button" class="segment-btn" data-type="found">Found</button>
+            </div>
+          </div>
+
+          <!-- Search keyword -->
+          <div class="filter-group">
+            <label for="filter-keyword" class="filter-label">Keywords</label>
+            <input type="text" id="filter-keyword" class="form-control" placeholder="E.g. Spigen case, jacket, dorm">
+          </div>
+
+          <!-- Category dropdown -->
+          <div class="filter-group">
+            <label for="filter-category" class="filter-label">Category</label>
+            <select id="filter-category" class="form-control">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+
+          <!-- Campus Location -->
+          <div class="filter-group">
+            <label for="filter-location" class="filter-label">Campus Location</label>
+            <select id="filter-location" class="form-control">
+              <option value="">All Buildings</option>
+              <option value="Main Library">Main Library</option>
+              <option value="Student Union">Student Union</option>
+              <option value="Student Rec Center">Student Rec Center</option>
+              <option value="Science & Tech Center">Science & Tech Center</option>
+              <option value="Dining Commons">Dining Commons</option>
+              <option value="North Quad">North Quad</option>
+              <option value="Engineering Hall">Engineering Hall</option>
+            </select>
+          </div>
+
+          <!-- Date Range -->
+          <div class="filter-group">
+            <label class="filter-label">Date Range</label>
+            <div class="date-range-row">
+              <input type="date" id="filter-start-date" class="form-control" title="Start date">
+              <input type="date" id="filter-end-date" class="form-control" title="End date">
+            </div>
+          </div>
+
+          <!-- Status filter -->
+          <div class="filter-group">
+            <label for="filter-status" class="filter-label">Status</label>
+            <select id="filter-status" class="form-control">
+              <option value="open">Open Cases Only</option>
+              <option value="">All (Including Resolved)</option>
+              <option value="claimed">Claimed</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </aside>
+
+        <!-- Main Items Column -->
+        <div class="browse-results">
+          <div class="results-toolbar">
+            <p id="results-count" class="results-count">Showing items...</p>
+          </div>
+          <div id="browse-items-grid" class="items-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PAGE 3: REPORT FORM
+         ======================================================== -->
+    <section id="view-report" class="view-section">
+      <div class="form-container">
+        <div class="form-header">
+          <h2 id="report-form-title">Report a Campus Item</h2>
+          <p>Provide accurate details to assist our student body and security staff in reuniting belongings.</p>
+        </div>
+
+        <form id="report-item-form" class="standard-form">
+          <!-- Report Type -->
+          <div class="form-group">
+            <label class="form-label">Are you reporting an item you lost or found?</label>
+            <div class="segmented-control large" id="report-type-control">
+              <button type="button" class="segment-btn active" data-type="lost">I Lost an Item</button>
+              <button type="button" class="segment-btn" data-type="found">I Found an Item</button>
+            </div>
+            <input type="hidden" name="type" id="report-item-type" value="lost">
+          </div>
+
+          <!-- Title -->
+          <div class="form-group">
+            <label for="report-title" class="form-label">Item Name / Headline *</label>
+            <input type="text" id="report-title" name="title" class="form-control" placeholder="E.g. Sage Green Hydro Flask 32oz" required minlength="4" maxlength="120">
+            <span class="field-hint">Include brand, color, or distinctive edition.</span>
+          </div>
+
+          <!-- Category -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="report-category" class="form-label">Category *</label>
+              <select id="report-category" name="category_id" class="form-control" required>
+                <option value="">Select category...</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="report-date" class="form-label">Date Lost / Found *</label>
+              <input type="date" id="report-date" name="date_occurred" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="report-location" class="form-label">Campus Facility / Zone *</label>
+              <select id="report-location" name="location" class="form-control" required>
+                <option value="">Select campus building...</option>
+                <option value="Main Library">Main Library</option>
+                <option value="Student Union">Student Union</option>
+                <option value="Student Rec Center">Student Rec Center</option>
+                <option value="Science & Tech Center">Science & Tech Center</option>
+                <option value="Dining Commons">Dining Commons</option>
+                <option value="North Quad">North Quad</option>
+                <option value="Engineering Hall">Engineering Hall</option>
+                <option value="Campus Parking Lots">Campus Parking Lots</option>
+                <option value="Other Campus Grounds">Other Campus Grounds</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="report-specific-location" class="form-label">Specific Spot / Room</label>
+              <input type="text" id="report-specific-location" name="specific_location" class="form-control" placeholder="E.g. 2nd floor quiet carrels, bench #3">
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="report-description" class="form-label">Detailed Description *</label>
+            <textarea id="report-description" name="description" rows="4" class="form-control" placeholder="Describe stickers, scratches, case color, engraved initials, contents..." required minlength="15"></textarea>
+            <span class="field-hint">Detailed descriptions increase match likelihood with our auto-tagging algorithm.</span>
+          </div>
+
+          <!-- Photo Upload with Preview -->
+          <div class="form-group">
+            <label class="form-label">Item Photo (Optional but recommended)</label>
+            <div class="upload-dropzone" id="upload-dropzone">
+              <input type="file" id="report-photo-input" name="photo" accept="image/png,image/jpeg,image/webp" class="file-input-hidden">
+              <div class="upload-prompt" id="upload-prompt">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Click or drag image here (PNG, JPG, WEBP &le; 5MB)</p>
+              </div>
+              <div class="upload-preview-container" id="upload-preview-container" style="display:none;">
+                <img id="upload-preview-img" alt="Uploaded item preview">
+                <button type="button" id="remove-photo-btn" class="btn-remove-photo">&times; Remove Photo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Details -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="report-email" class="form-label">Contact Email *</label>
+              <input type="email" id="report-email" name="contact_email" class="form-control" placeholder="student@university.edu" required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="report-phone" class="form-label">Contact Phone (Optional)</label>
+              <input type="tel" id="report-phone" name="contact_phone" class="form-control" placeholder="555-0100">
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-submit-row">
+            <button type="button" class="btn btn-outline" onclick="window.history.back()">Cancel</button>
+            <button type="submit" id="submit-report-btn" class="btn btn-primary">Submit Item Report</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PAGE 4: ITEM DETAIL & SMART MATCHES VIEW
+         ======================================================== -->
+    <section id="view-item-detail" class="view-section">
+      <div class="detail-container">
+        <a href="#browse" class="back-link">&larr; Back to Browse Items</a>
+        
+        <div class="detail-grid">
+          <!-- Left Column: Item Image & Key Badges -->
+          <div class="detail-media-column">
+            <div id="detail-image-box" class="detail-image-box">
+              <img id="detail-photo" alt="Item photo" style="display:none;">
+              <div id="detail-placeholder" class="detail-placeholder-svg"></div>
+            </div>
+          </div>
+
+          <!-- Right Column: Item Information -->
+          <div class="detail-content-column">
+            <div class="detail-meta-header">
+              <span id="detail-type-badge" class="type-badge-inline">LOST</span>
+              <span class="meta-sep">&middot;</span>
+              <span id="detail-category-text" class="meta-text">Category</span>
+              <span class="meta-sep">&middot;</span>
+              <span id="detail-status-text" class="status-indicator">Open</span>
+            </div>
+
+            <h1 id="detail-title" class="detail-title">Item Title</h1>
+            
+            <div class="detail-info-strip">
+              <div class="info-cell">
+                <span class="info-label">Date Occurred</span>
+                <span id="detail-date" class="info-value">--</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">Location</span>
+                <span id="detail-location" class="info-value">--</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">Reported By</span>
+                <span id="detail-reporter" class="info-value">--</span>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h3 class="detail-section-title">Description</h3>
+              <p id="detail-desc" class="detail-desc-text"></p>
+            </div>
+
+            <div class="detail-section">
+              <h3 class="detail-section-title">Specific Location Details</h3>
+              <p id="detail-specific-location" class="detail-desc-text"></p>
+            </div>
+
+            <!-- Action Area -->
+            <div class="detail-action-bar">
+              <button id="open-claim-btn" class="btn btn-primary">Claim / I Found This</button>
+              <span id="claim-guidance-text" class="claim-hint">You will be asked to provide identifying verification.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================
+             SMART MATCHING SYSTEM (Possible Matches Box)
+             ======================================================== -->
+        <div id="match-section" class="match-section">
+          <div class="match-header">
+            <div>
+              <h2 class="match-title">Possible Matches</h2>
+              <p class="match-subtitle">Our matching algorithm analyzes category overlap, keyword token similarity, and date proximity.</p>
+            </div>
+            <div class="match-badge">Automated Matching Engine</div>
+          </div>
+          <div id="matches-container" class="matches-grid">
+            <div class="loading-state">Analyzing potential matches...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PAGE 5: LOGIN & REGISTER VIEW
+         ======================================================== -->
+    <section id="view-login" class="view-section">
+      <div class="auth-card">
+        <!-- Auth Tab Switcher -->
+        <div class="auth-tabs">
+          <button type="button" id="tab-login" class="auth-tab active">Sign In</button>
+          <button type="button" id="tab-register" class="auth-tab">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form active">
+          <div class="form-group">
+            <label for="login-email" class="form-label">Campus Email</label>
+            <input type="email" id="login-email" class="form-control" placeholder="name@university.edu" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password" class="form-label">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+          
+          <!-- Fast Demo Accounts Switcher -->
+          <div class="demo-accounts-box">
+            <span class="demo-label">Quick Demo Logins:</span>
+            <div class="demo-btn-group">
+              <button type="button" class="btn-demo" data-demo="student">Student (Alex)</button>
+              <button type="button" class="btn-demo" data-demo="admin">Admin (Campus Security)</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form" style="display:none;">
+          <div class="form-group">
+            <label for="reg-name" class="form-label">Full Name</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="Jordan Lee" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-email" class="form-label">Campus Email</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="jordan@student.university.edu" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-campus-id" class="form-label">Campus ID (Optional)</label>
+            <input type="text" id="reg-campus-id" class="form-control" placeholder="STU-99412">
+          </div>
+          <div class="form-group">
+            <label for="reg-phone" class="form-label">Phone Number (Optional)</label>
+            <input type="tel" id="reg-phone" class="form-control" placeholder="555-0188">
+          </div>
+          <div class="form-group">
+            <label for="reg-password" class="form-label">Password (Min. 8 characters)</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required minlength="8">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Create Campus Account</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PAGE 6: MY POSTS VIEW (User Post Management)
+         ======================================================== -->
+    <section id="view-my-posts" class="view-section">
+      <div class="section-container">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">My Reported Items</h1>
+            <p class="section-desc">Manage your campus reports, review claim submissions, or mark items as resolved.</p>
+          </div>
+          <a href="#report" class="btn btn-primary">+ Report Another Item</a>
+        </div>
+
+        <div id="my-posts-container" class="my-posts-list">
+          <div class="loading-state">Loading your reports...</div>
+        </div>
+
+        <!-- Claims submitted by user -->
+        <div class="section-divider"></div>
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Claims You Submitted</h2>
+            <p class="section-desc">Track status of items you claimed as your property.</p>
+          </div>
+        </div>
+        <div id="my-submitted-claims" class="my-claims-list"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PAGE 7: ADMIN DASHBOARD (Admin Only)
+         ======================================================== -->
+    <section id="view-admin" class="view-section">
+      <div class="admin-dashboard-layout">
+        <div class="admin-topbar">
+          <div>
+            <h1 class="admin-title">Campus Security & Lost/Found Console</h1>
+            <p class="admin-subtitle">Campus oversight, claim verification queue, and taxonomy distribution.</p>
+          </div>
+          <span class="admin-badge">Admin Access</span>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="admin-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-num" id="kpi-lost">0</span>
+            <span class="kpi-label">Active Lost Items</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-num" id="kpi-found">0</span>
+            <span class="kpi-label">Active Found Items</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-num" id="kpi-resolved">0</span>
+            <span class="kpi-label">Resolved / Returned</span>
+          </div>
+          <div class="kpi-card highlight">
+            <span class="kpi-num" id="kpi-pending-claims">0</span>
+            <span class="kpi-label">Pending Claims</span>
+          </div>
+        </div>
+
+        <!-- Category Chart Section -->
+        <div class="chart-panel">
+          <h3 class="panel-title">Items Reported by Category</h3>
+          <p class="panel-subtitle">Visual distribution across catalog taxonomies</p>
+          <div id="category-chart" class="category-bars-container"></div>
+        </div>
+
+        <!-- Claims Queue Table -->
+        <div class="admin-panel">
+          <h3 class="panel-title">Pending & Recent Ownership Claims</h3>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Claim ID</th>
+                  <th>Item Title</th>
+                  <th>Claimer</th>
+                  <th>Student Message & Proof</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-claims-tbody">
+                <tr><td colspan="6" class="text-center">Loading claims...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- All Items Management Table -->
+        <div class="admin-panel">
+          <h3 class="panel-title">All Cataloged Items</h3>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Location</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-items-tbody">
+                <tr><td colspan="8" class="text-center">Loading all items...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CLAIM MODAL -->
+  <div id="claim-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Submit Ownership Claim</h3>
+        <button type="button" class="btn-close-modal" id="close-claim-modal-btn">&times;</button>
+      </div>
+      <form id="claim-form">
+        <input type="hidden" id="claim-item-id">
+        <div class="form-group">
+          <label for="claim-message" class="form-label">Why is this your item? *</label>
+          <textarea id="claim-message" class="form-control" rows="3" placeholder="Explain when and where you lost it..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="claim-proof" class="form-label">Proof of Ownership / Distinctive Marks</label>
+          <textarea id="claim-proof" class="form-control" rows="2" placeholder="Mention serial number, engravings, lock pattern, wallpaper image, or unique stickers that only the owner would know..."></textarea>
+          <span class="field-hint">Campus staff check these details before handing over items.</span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="cancel-claim-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Claim</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
